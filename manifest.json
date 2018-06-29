@@ -3,7 +3,11 @@
   "name": "ZipImage",
   "version": "0.1",
   "description": "Download selected URLs as Zip",
-  "permissions": ["contextMenus", "activeTab"],
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "downloads"
+  ],
   "background": {
     "scripts": [
       "jszip.min.js",
