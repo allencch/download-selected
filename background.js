@@ -1,3 +1,30 @@
+const getFileExtension = (url) => {
+  const matches = url.match(/\.(\w+)\b/g);
+  if (!matches) {
+    return null;
+  }
+  const lastMatch = matches[matches.length - 1];
+  return lastMatch.substring(1);
+};
+
+const downloadFile = (zip, link) => {
+  return new Promise((resolve, reject) => {
+    fetch(link.url).then(response => {
+      if (response.ok) {
+        const name = `${link.text}.${getFileExtension(link.url)}`;
+        return response
+          .blob()
+          .then(blob => zip.file(name, blob))
+          .then(resolve);
+      }
+      else {
+        reject(Error(`Fail download ${link.url}`));
+        return null;
+      }
+    });
+  });
+};
+
 const createDownload = (data) => {
   const { links } = data;
   if (!links || !links.length) {
@@ -5,17 +32,19 @@ const createDownload = (data) => {
   }
 
   const zip = new JSZip();
-  zip.file(links[0].href);
-  zip.generateAsync({ type: "blob" })
-    .then(content => {
-      const url = URL.createObjectURL(content);
-      browser.downloads.download({
-        url,
-        filename: 'download.zip',
-        conflictAction: 'uniquify',
-        saveAs: true
+  const promises = links.map(link => (downloadFile(zip, link)));
+  Promise.all(promises).then(() => {
+    zip.generateAsync({ type: "blob" })
+      .then(content => {
+        const url = URL.createObjectURL(content);
+        browser.downloads.download({
+          url,
+          filename: 'download.zip',
+          conflictAction: 'uniquify',
+          saveAs: true
+        });
       });
-    });
+  });
 };
 
 const getSelection = (tab) => {
