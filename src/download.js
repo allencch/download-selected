@@ -1,5 +1,8 @@
 (() => {
   const getLinkNode = node => {
+    if (!node) {
+      return null;
+    }
     let nodeOfInterest = node;
     if (nodeOfInterest.nodeName === '#text') {
       nodeOfInterest = nodeOfInterest.parentNode;
@@ -22,10 +25,20 @@
   };
 
   const getFirstNode = selection => {
-    return getLinkNode(selection.getRangeAt(0).startContainer.nextSibling);
+    let node = getLinkNode(selection.getRangeAt(0).startContainer);
+    if (!node) {
+      node = getLinkNode(selection.getRangeAt(0).startContainer.nextSibling);
+    }
+    return node;
   };
 
-  const getLastNode = selection => getLinkNode(selection.focusNode);
+  const getLastNode = selection => {
+    let node = getLinkNode(selection.getRangeAt(0).endContainer);
+    if (!node) {
+      node = getLinkNode(selection.getRangeAt(0).endContainer.previousSibling);
+    }
+    return node;
+  };
 
   const getChildren = selection => {
     let children = Array.from(selection.anchorNode.parentNode.children);
