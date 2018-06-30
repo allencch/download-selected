@@ -80,7 +80,6 @@
 
   const selection = window.getSelection();
   const links = extractLinks(selection);
-  console.log(links);
 
   browser.runtime.sendMessage({
     cmd: 'create-download',

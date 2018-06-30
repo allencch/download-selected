@@ -47,11 +47,13 @@ const recursiveFetch = (zip, links, count, tabId) => {
   }
   const two = links.slice(count, count + NUM_JOB);
   const promises = two.map(link => downloadFile(zip, link));
-  Promise.all(promises).then((link) => {
-    // browser.tabs.sendMessage(tabId, {
-    //   cmd: 'message',
-    //   message: `${link.text} downloaded`
-    // });
+  Promise.all(promises).then(list => {
+    list.forEach(({ link }) => {
+      browser.tabs.sendMessage(tabId, {
+        cmd: 'message',
+        message: `${link.text} downloaded`
+      });
+    });
     recursiveFetch(zip, links, count + NUM_JOB, tabId);
   });
 };
@@ -64,28 +66,6 @@ const createDownload = (data, tabId) => {
   const zip = new JSZip();
   recursiveFetch(zip, links, 0, tabId);
 };
-
-// const createDownload = (data) => {
-//   const { links } = data;
-//   if (!links || !links.length) {
-//     return;
-//   }
-
-//   const zip = new JSZip();
-//   const promises = links.map(link => downloadFile(zip, link));
-//   Promise.all(promises).then(() => {
-//     zip.generateAsync({ type: "blob" })
-//       .then(content => {
-//         const url = URL.createObjectURL(content);
-//         browser.downloads.download({
-//           url,
-//           filename: 'download.zip',
-//           conflictAction: 'uniquify',
-//           saveAs: true
-//         });
-//       });
-//   });
-// };
 
 const getSelection = (tab) => {
   browser.tabs.executeScript(tab.id, {
