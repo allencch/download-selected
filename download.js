@@ -4,7 +4,8 @@
       .filter(el => el.nodeName === 'A')
       .map(el => ({
         text: el.innerHTML,
-        url: el.href
+        url: el.href,
+        referrer: window.location.toString()
       }))
   );
 

@@ -9,7 +9,9 @@ const getFileExtension = (url) => {
 
 const downloadFile = (zip, link) => {
   return new Promise((resolve, reject) => {
-    fetch(link.url).then(response => {
+    fetch(link.url, {
+      referrer: link.referrer
+    }).then(response => {
       if (response.ok) {
         const name = `${link.text}.${getFileExtension(link.url)}`;
         return response
