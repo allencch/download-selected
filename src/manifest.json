@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "ZipImage",
+  "name": "DownloadSelected",
   "version": "0.1",
   "description": "Download selected URLs as Zip",
   "permissions": [
