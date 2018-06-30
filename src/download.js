@@ -1,4 +1,11 @@
 (() => {
+  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    switch (request.cmd) {
+      case 'message':
+        console.log(request.message);
+    }
+  });
+
   const getLinkNode = node => {
     if (!node) {
       return null;
@@ -74,8 +81,9 @@
   const selection = window.getSelection();
   const links = extractLinks(selection);
   console.log(links);
-  // browser.runtime.sendMessage({
-  //   cmd: 'create-download',
-  //   links
-  // });
+
+  browser.runtime.sendMessage({
+    cmd: 'create-download',
+    links
+  });
 })();
