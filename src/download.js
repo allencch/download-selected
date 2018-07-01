@@ -28,7 +28,8 @@
   };
 
   const isLink = node => {
-    return Boolean(getLinkNode(node));
+    return node.nodeName === 'A' &&
+      !node.attributes.href.value.match(/^javascript/);
   };
 
   const getFirstNode = selection => {
@@ -53,6 +54,8 @@
       children = Array.from(selection.anchorNode.parentNode.parentNode.children);
     }
 
+    children = children.filter(el => isLink(el));
+
     const firstNode = getFirstNode(selection);
     let firstIndex = 0;
     let lastIndex = children.length - 1;
@@ -74,7 +77,6 @@
   const extractLinks = selection => {
     const children = getChildren(selection);
     return children
-      .filter(el => isLink(el))
       .map(el => ({
         text: el.innerHTML,
         url: el.href,
