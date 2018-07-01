@@ -89,56 +89,52 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 /*******************
-* Zip pogressively
+* Zip once
 *******************/
 
-const zipLink = (zip, request) => {
-  const { link } = request;
-  fetch(link.base64data)
-    .then(response => {
-      if (response.ok) {
-        console.log(`background zipping ${link.name}`);
-        return response
-          .blob()
-          .then(blob => {
-            console.log('background zip', blob);
-            zip.file(link.name, blob);
-          });
-      }
-      else {
-        throw Error(`Fail fetch base64 ${link.url}`);
-      }
-    });
-};
-
-const zipFinish = (zip) => {
-  zip.generateAsync({ type: "blob" })
-    .then(content => {
-      const url = URL.createObjectURL(content);
-      browser.downloads.download({
-        url,
-        filename: 'download.zip',
-        conflictAction: 'uniquify',
-        saveAs: true
+const zipFetched = (zip, link) => {
+  return new Promise((resolve, reject) => {
+    return fetch(link.base64data)
+      .then(response => {
+        if (response.ok) {
+          return response
+            .blob()
+            .then(blob => zip.file(link.name, blob))
+            .then(zipData => resolve(zipData));
+        }
+        else {
+          reject(Error(`Fail fetch base64 ${link.url}`));
+          return null;
+        }
       });
-    });
+  });
 };
 
-(() => {
-  const zip = new JSZip();
-  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    switch (request.cmd) {
-      case 'create-download':
-        createDownload(request, sender.tab.id);
-        break;
-      case 'send-to-zip':
-        zipLink(zip, request);
-        break;
-      case 'finish-zip':
-        zipFinish(zip);
-        break;
-      default:
-        console.log(request);
-    }
+const zipAll = request => {
+  const zip = JSZip();
+  const { fetchedData } = request;
+  const promises = fetchedData.map(link => zipFetched(zip, link));
+  Promise.all(promises).then(() => {
+    zip.generateAsync({ type: "blob" })
+      .then(content => {
+        const url = URL.createObjectURL(content);
+        browser.downloads.download({
+          url,
+          filename: 'download.zip',
+          conflictAction: 'uniquify',
+          saveAs: true
+        });
+      });
   });
-})();
+};
+
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  switch (request.cmd) {
+    case 'create-download':
+      createDownload(request, sender.tab.id);
+      break;
+    case 'zip-all':
+      zipAll(request);
+      break;
+  }
+});

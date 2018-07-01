@@ -133,35 +133,33 @@
     });
   };
 
-  const sendToZip = link => {
+  const zipAll = fetchedData => {
     browser.runtime.sendMessage({
-      cmd: 'send-to-zip',
-      link
+      cmd: 'zip-all',
+      fetchedData
     });
   };
 
-  const finishZip = () => browser.runtime.sendMessage({ cmd: 'finish-zip' });
-
-  const recursiveFetch = (links, count) => {
+  const recursiveFetch = (fetchedData = [], links, count) => {
     if (count >= links.length) {
-      console.log('content finish');
-      finishZip();
+      console.log('finish');
+      zipAll(fetchedData);
       return;
     }
     const two = links.slice(count, count + NUM_JOB);
     const promises = two.map(link => downloadFile(link));
     Promise.all(promises).then(list => {
       list.forEach(link => {
-        console.log(`content ${link.text} downloaded`);
-        sendToZip(link);
+        console.log(`${link.text} downloaded`);
+        fetchedData.push(link);
       });
-      recursiveFetch(links, count + NUM_JOB);
+      recursiveFetch(fetchedData, links, count + NUM_JOB);
     });
   };
 
   const selection = window.getSelection();
   const links = extractLinks(selection);
-  recursiveFetch(links, 0);
+  recursiveFetch([], links, 0);
 
   // browser.runtime.sendMessage({
   //   cmd: 'create-download',
