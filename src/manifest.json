@@ -14,5 +14,10 @@
       "jszip.min.js",
       "background.js"
     ]
+  },
+  "applications": {
+    "gecko": {
+      "id": "{313adba6-44d0-42f6-90e6-01eb80f6739f}"
+    }
   }
 }
