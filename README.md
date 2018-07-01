@@ -21,6 +21,6 @@ The filenames in the Zip is based on the HTML text instead of the original filen
 
 ## Todo
 
-* [ ] Makefile to create Firefox addon
+* [X] Makefile to create Firefox addon
 * [ ] Try on Google Chrome
 
