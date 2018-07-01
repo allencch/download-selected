@@ -2,13 +2,6 @@
   const NUM_JOB = 2;
   var browser = browser || chrome;
 
-  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    switch (request.cmd) {
-      case 'message':
-        console.log(request.message);
-    }
-  });
-
   /**********
   * Get links
   ***********/
@@ -160,9 +153,4 @@
   const selection = window.getSelection();
   const links = extractLinks(selection);
   recursiveFetch([], links, 0);
-
-  // browser.runtime.sendMessage({
-  //   cmd: 'create-download',
-  //   links
-  // });
 })();
