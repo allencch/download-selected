@@ -1,10 +1,17 @@
 (() => {
+  const NUM_JOB = 2;
+  var browser = browser || chrome;
+
   browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     switch (request.cmd) {
       case 'message':
         console.log(request.message);
     }
   });
+
+  /**********
+  * Get links
+  ***********/
 
   const getLinkNode = node => {
     if (!node) {
@@ -67,6 +74,10 @@
     return children.slice(firstIndex, lastIndex + 1);
   };
 
+  /**************
+  * Downloads
+  **************/
+
   const extractLinks = selection => {
     const children = getChildren(selection);
     return children
@@ -78,11 +89,82 @@
       }));
   };
 
+  const getFileExtension = (url) => {
+    const matches = url.match(/\.(\w+)\b/g);
+    if (!matches) {
+      return null;
+    }
+    const lastMatch = matches[matches.length - 1];
+    return lastMatch.substring(1);
+  };
+
+  const blobToBase64 = (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const downloadFile = (link) => {
+    return new Promise((resolve, reject) => {
+      return fetch(link.url, {
+        referrer: link.referrer
+      }).then(response => {
+        if (response.ok) {
+          const name = `${link.text}.${getFileExtension(link.url)}`;
+          return response
+            .blob()
+            .then(blob => blobToBase64(blob))
+            .then(base64data => {
+              resolve({
+                ...link,
+                name,
+                base64data
+              });
+            });
+        }
+        else {
+          reject(Error(`Fail download ${link.url}`));
+          return null;
+        }
+      });
+    });
+  };
+
+  const sendToZip = link => {
+    browser.runtime.sendMessage({
+      cmd: 'send-to-zip',
+      link
+    });
+  };
+
+  const finishZip = () => browser.runtime.sendMessage({ cmd: 'finish-zip' });
+
+  const recursiveFetch = (links, count) => {
+    if (count >= links.length) {
+      console.log('content finish');
+      finishZip();
+      return;
+    }
+    const two = links.slice(count, count + NUM_JOB);
+    const promises = two.map(link => downloadFile(link));
+    Promise.all(promises).then(list => {
+      list.forEach(link => {
+        console.log(`content ${link.text} downloaded`);
+        sendToZip(link);
+      });
+      recursiveFetch(links, count + NUM_JOB);
+    });
+  };
+
   const selection = window.getSelection();
   const links = extractLinks(selection);
+  recursiveFetch(links, 0);
 
-  browser.runtime.sendMessage({
-    cmd: 'create-download',
-    links
-  });
+  // browser.runtime.sendMessage({
+  //   cmd: 'create-download',
+  //   links
+  // });
 })();

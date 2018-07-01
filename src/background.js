@@ -1,4 +1,5 @@
 const NUM_JOB = 2;
+var browser = browser || chrome;
 
 const getFileExtension = (url) => {
   const matches = url.match(/\.(\w+)\b/g);
@@ -87,9 +88,57 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  switch (request.cmd) {
-    case 'create-download':
-      createDownload(request, sender.tab.id);
-  }
-});
+/*******************
+* Zip pogressively
+*******************/
+
+const zipLink = (zip, request) => {
+  const { link } = request;
+  fetch(link.base64data)
+    .then(response => {
+      if (response.ok) {
+        console.log(`background zipping ${link.name}`);
+        return response
+          .blob()
+          .then(blob => {
+            console.log('background zip', blob);
+            zip.file(link.name, blob);
+          });
+      }
+      else {
+        throw Error(`Fail fetch base64 ${link.url}`);
+      }
+    });
+};
+
+const zipFinish = (zip) => {
+  zip.generateAsync({ type: "blob" })
+    .then(content => {
+      const url = URL.createObjectURL(content);
+      browser.downloads.download({
+        url,
+        filename: 'download.zip',
+        conflictAction: 'uniquify',
+        saveAs: true
+      });
+    });
+};
+
+(() => {
+  const zip = new JSZip();
+  browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    switch (request.cmd) {
+      case 'create-download':
+        createDownload(request, sender.tab.id);
+        break;
+      case 'send-to-zip':
+        zipLink(zip, request);
+        break;
+      case 'finish-zip':
+        zipFinish(zip);
+        break;
+      default:
+        console.log(request);
+    }
+  });
+})();
