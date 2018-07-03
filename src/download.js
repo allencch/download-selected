@@ -102,25 +102,23 @@
       background: white;
       border: 1px solid black;
     `);
-    div.innerHTML = `
-      <div
-        class="download-selected--close"
-        style="position:absolute;top:5px;right:5px;cursor:pointer"
-        onclick="(${onClickDownloadSelectedClose()})()"
-      >
-        X
-      </div>
-      <div
-        class="download-selected--content"
-        style="font-size:8px;white-space:nowrap"
-      >
-      </div>
-    `;
+
+    const closeDiv = document.createElement('div');
+    closeDiv.setAttribute('class', 'download-selected--close');
+    closeDiv.setAttribute('style', 'position:absolute;top:5px;right:5px;cursor:pointer');
+    closeDiv.setAttribute('onclick',`(${onClickDownloadSelectedClose()})()`);
+    closeDiv.appendChild(document.createTextNode('X'));
+    div.appendChild(closeDiv);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.setAttribute('class', 'download-selected--content');
+    contentDiv.setAttribute('style', 'font-size:8px;white-space:nowrap');
+    div.appendChild(contentDiv);
+
     body.appendChild(div);
   };
 
   const createUI = () => {
-    // registerOnClickClose();
     createMain();
   };
 
@@ -135,7 +133,8 @@
       return;
     }
     const child = document.createElement('div');
-    child.innerHTML = message;
+    const text = document.createTextNode(message);
+    child.appendChild(text);
     div.appendChild(child);
   };
 
