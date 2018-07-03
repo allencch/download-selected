@@ -2,9 +2,9 @@
   const NUM_JOB = 2;
   var browser = browser || chrome;
 
-  /**********
-  * Get links
-  ***********/
+  /***********
+   * Get links
+   ***********/
 
   const getLinkNode = node => {
     if (!node) {
@@ -70,9 +70,74 @@
     return children.slice(firstIndex, lastIndex + 1);
   };
 
+  /********
+   * UI
+   *********/
+
+  const onClickDownloadSelectedClose = () => {
+    return () => {
+      const div = document.querySelector('#download-selected');
+      if (div) {
+        div.remove();
+      }
+    };
+  };
+
+  const createMain = () => {
+    let div = document.querySelector('#download-selected');
+    if (div) {
+      div.remove();
+    }
+    const body = document.querySelector('body');
+    div = document.createElement('div');
+    div.setAttribute('id', 'download-selected');
+    div.setAttribute('style', `
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      width: 100px;
+      height: 100px;
+      z-index: 1000;
+      overflow: auto;
+      background: white;
+      border: 1px solid black;
+    `);
+    div.innerHTML = `
+      <div
+        class="download-selected--close"
+        style="position:absolute;top:5px;right:5px;cursor:pointer"
+        onclick="(${onClickDownloadSelectedClose()})()"
+      >
+        X
+      </div>
+      <div
+        class="download-selected--content"
+        style="font-size:8px;white-space:nowrap"
+      >
+      </div>
+    `;
+    body.appendChild(div);
+  };
+
+  const createUI = () => {
+    // registerOnClickClose();
+    createMain();
+  };
+
+
   /**************
-  * Downloads
-  **************/
+   * Downloads
+   **************/
+
+  const writeToDiv = message => {
+    const div = document.querySelector('.download-selected--content');
+    if (!div) {
+      return;
+    }
+    const child = document.createElement('div');
+    child.innerHTML = message;
+    div.appendChild(child);
+  };
 
   const extractLinks = selection => {
     const children = getChildren(selection);
@@ -121,8 +186,9 @@
             });
         }
         else {
-          reject(Error(`Fail download ${link.url}`));
-          return null;
+          const message = `Fail download ${link.url}`;
+          writeToDiv(message);
+          return reject(Error(message));
         }
       });
     });
@@ -137,7 +203,7 @@
 
   const recursiveFetch = (fetchedData = [], links, count) => {
     if (count >= links.length) {
-      console.log('finish');
+      writeToDiv('finish');
       zipAll(fetchedData);
       return;
     }
@@ -145,14 +211,18 @@
     const promises = two.map(link => downloadFile(link));
     Promise.all(promises).then(list => {
       list.forEach(link => {
-        console.log(`${link.text} downloaded`);
+        writeToDiv(`${link.text} downloaded`);
         fetchedData.push(link);
       });
       recursiveFetch(fetchedData, links, count + NUM_JOB);
     });
   };
 
-  const selection = window.getSelection();
-  const links = extractLinks(selection);
-  recursiveFetch([], links, 0);
+  // Main
+  (() => {
+    createUI();
+    const selection = window.getSelection();
+    const links = extractLinks(selection);
+    recursiveFetch([], links, 0);
+  })();
 })();
