@@ -17,10 +17,10 @@
     if (nodeOfInterest.nodeName !== 'A') {
       nodeOfInterest = node.previousSibling;
     }
-    if (nodeOfInterest.nodeName !== 'A') {
+    if (nodeOfInterest && nodeOfInterest.nodeName !== 'A') {
       nodeOfInterest = node.nextSibling;
     }
-    if (nodeOfInterest.nodeName === 'A' &&
+    if (nodeOfInterest && nodeOfInterest.nodeName === 'A' &&
         !nodeOfInterest.attributes.href.value.match(/^javascript/)) {
       return nodeOfInterest;
     }
