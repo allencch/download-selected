@@ -49,9 +49,9 @@
   };
 
   const getChildren = selection => {
-    let children = Array.from(selection.anchorNode.parentNode.children);
+    let children = Array.from(selection.anchorNode.parentNode.querySelectorAll('a[href]'));
     if (!children.length) {
-      children = Array.from(selection.anchorNode.parentNode.parentNode.children);
+      children = Array.from(selection.anchorNode.parentNode.parentNode.querySelectorAll('a[href]'));
     }
 
     children = children.filter(el => isLink(el));
