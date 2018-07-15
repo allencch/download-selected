@@ -48,13 +48,40 @@
     return node;
   };
 
-  const getChildren = selection => {
-    let children = Array.from(selection.anchorNode.parentNode.querySelectorAll('a[href]'));
-    if (!children.length) {
-      children = Array.from(selection.anchorNode.parentNode.parentNode.querySelectorAll('a[href]'));
+  const getAncestors = node => {
+    const ancestors = [];
+    if (!node) {
+      return ancestors;
     }
+    let parentNode = node.parentNode;
+    while (parentNode) {
+      ancestors.push(parentNode);
+      parentNode = parentNode.parentNode;
+    }
+    return ancestors;
+  };
 
-    children = children.filter(el => isLink(el));
+  const getCommonAncestor = selection => {
+    const firstLink = getFirstNode(selection);
+    const lastLink = getLastNode(selection);
+    const firstAncestors = getAncestors(firstLink);
+    const lastAncestors = getAncestors(lastLink);
+    for (let i = 0; i < firstAncestors.length; i++) {
+      for (let j = 0; j < lastAncestors.length; j++) {
+        if (firstAncestors[i] === lastAncestors[j]) {
+          return firstAncestors[i];
+        }
+      }
+    }
+    if (firstAncestors.length) {
+      return firstAncestors[0];
+    }
+    return null;
+  };
+
+  const getChildren = selection => {
+    const ancestor = getCommonAncestor(selection);
+    let children = Array.from(ancestor.querySelectorAll('a[href]:not([href^=javascript]'));
 
     const firstNode = getFirstNode(selection);
     let firstIndex = 0;
@@ -141,8 +168,9 @@
   const extractLinks = selection => {
     const children = getChildren(selection);
     return children
+      .filter(el => el.text && el.href.match(/(jp(?:e?g|e|2)|gif|png|tiff?|bmp|ico|pdf)/i))
       .map(el => ({
-        text: el.innerHTML,
+        text: el.text,
         url: el.href,
         referrer: window.location.toString()
       }));
