@@ -37,8 +37,8 @@
     if (node) {
       return node;
     }
-    else if (startContainer.children && startContainer.children.length) {
-      return recursiveNextLink(startContainer.children[0], endContainer);
+    else if (startContainer.fistChild) {
+      return recursiveNextLink(startContainer.fistChild, endContainer);
     }
     else if (startContainer.nextSibling) {
       return recursiveNextLink(startContainer.nextSibling, endContainer);
@@ -59,6 +59,9 @@
 
     if (node) {
       return node;
+    }
+    else if (endContainer.previousSibling && endContainer.previousSibling.lastChild) {
+      return recursivePreviousLink(startContainer, endContainer.previousSibling.lastChild);
     }
     else if (endContainer.previousSibling) {
       return recursivePreviousLink(startContainer, endContainer.previousSibling);
@@ -276,7 +279,9 @@
     createUI();
     const selection = window.getSelection();
     const links = extractLinks(selection);
-    console.log(links);
-    // recursiveFetch([], links, 0);
+
+    if (links.length === 0) return;
+
+    recursiveFetch([], links, 0);
   })();
 })();
