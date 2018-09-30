@@ -21,30 +21,56 @@
       nodeOfInterest = node.nextSibling;
     }
     if (nodeOfInterest && nodeOfInterest.nodeName === 'A' &&
-        !nodeOfInterest.attributes.href.value.match(/^javascript/)) {
+        !(/^javascript/.test(nodeOfInterest.attributes.href.value)) &&
+        !(/^#/.test(nodeOfInterest.attributes.href.value))) {
       return nodeOfInterest;
     }
     return null;
   };
 
-  const isLink = node => {
-    return node.nodeName === 'A' &&
-      !node.attributes.href.value.match(/^javascript/);
+  const recursiveNextLink = (startContainer, endContainer) => {
+    if (!startContainer || startContainer === endContainer) {
+      return null;
+    }
+    let node = getLinkNode(startContainer);
+
+    if (node) {
+      return node;
+    }
+    else if (startContainer.children && startContainer.children.length) {
+      return recursiveNextLink(startContainer.children[0], endContainer);
+    }
+    else if (startContainer.nextSibling) {
+      return recursiveNextLink(startContainer.nextSibling, endContainer);
+    }
+    return null;
   };
 
   const getFirstNode = selection => {
-    let node = getLinkNode(selection.getRangeAt(0).startContainer);
-    if (!node) {
-      node = getLinkNode(selection.getRangeAt(0).startContainer.nextSibling);
-    }
+    const node = recursiveNextLink(selection.getRangeAt(0).startContainer, selection.getRangeAt(0).endContainer);
     return node;
   };
 
-  const getLastNode = selection => {
-    let node = getLinkNode(selection.getRangeAt(0).endContainer);
-    if (!node) {
-      node = getLinkNode(selection.getRangeAt(0).endContainer.previousSibling);
+  const recursivePreviousLink = (startContainer, endContainer) => {
+    if (!endContainer || endContainer === startContainer) {
+      return null;
     }
+    let node = getLinkNode(endContainer);
+
+    if (node) {
+      return node;
+    }
+    else if (endContainer.previousSibling) {
+      return recursivePreviousLink(startContainer, endContainer.previousSibling);
+    }
+    else if (endContainer.parentNode) {
+      return recursivePreviousLink(startContainer, endContainer.parentNode);
+    }
+    return null;
+  };
+
+  const getLastNode = selection => {
+    const node = recursivePreviousLink(selection.getRangeAt(0).startContainer, selection.getRangeAt(0).endContainer);
     return node;
   };
 
@@ -250,6 +276,7 @@
     createUI();
     const selection = window.getSelection();
     const links = extractLinks(selection);
-    recursiveFetch([], links, 0);
+    console.log(links);
+    // recursiveFetch([], links, 0);
   })();
 })();
