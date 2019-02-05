@@ -91,21 +91,7 @@
   };
 
   const getCommonAncestor = selection => {
-    const firstLink = getFirstNode(selection);
-    const lastLink = getLastNode(selection);
-    const firstAncestors = getAncestors(firstLink);
-    const lastAncestors = getAncestors(lastLink);
-    for (let i = 0; i < firstAncestors.length; i++) {
-      for (let j = 0; j < lastAncestors.length; j++) {
-        if (firstAncestors[i] === lastAncestors[j]) {
-          return firstAncestors[i];
-        }
-      }
-    }
-    if (firstAncestors.length) {
-      return firstAncestors[0];
-    }
-    return null;
+    return selection.getRangeAt(0).commonAncestorContainer;
   };
 
   const getChildren = selection => {
