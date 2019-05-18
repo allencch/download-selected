@@ -8,7 +8,7 @@ module.exports = grunt => {
     },
     concat: {
       download: {
-        src: ['src/download/**/*.js'],
+        src: ['src/download/lib/**/*.js', 'src/download/index.js'],
         dest: 'src/download.js'
       }
     }

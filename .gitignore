@@ -1,3 +1,4 @@
 /*.zip
 /*.xpi
 node_modules
+/src/download.js
