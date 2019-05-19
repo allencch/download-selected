@@ -20,32 +20,8 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-
-const downloadZip = request => {
-  const { url } = request;
-  const downloadPromise = browser.downloads.download({
-    url,
-    filename: 'download.zip',
-    conflictAction: 'uniquify',
-    saveAs: true
-  });
-
-  // Firefox
-  if (downloadPromise) {
-    downloadPromise.then(() => {
-      URL.revokeObjectURL(url);
-    });
-  }
-};
-
 browser.runtime.onMessage.addListener((request) => {
   switch (request.cmd) {
-    case 'zip-all':
-      zipAll(request);
-      break;
-    case 'download':
-      console.log(request);
-      downloadZip(request);
-      break;
+    // Do anything
   }
 });
