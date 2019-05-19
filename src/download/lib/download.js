@@ -77,13 +77,43 @@
     });
   };
 
-  const zipAll = fetchedData => {
-    const blob = new Blob([JSON.stringify(fetchedData)]);
-    const url = URL.createObjectURL(blob);
-    browser.runtime.sendMessage({
-      cmd: 'zip-all',
-      blobUrl: url
+  const zipFetched = (zip, link) => {
+    return new Promise((resolve, reject) => {
+      return fetch(link.base64data)
+        .then(response => {
+          if (response.ok) {
+            return response
+              .blob()
+              .then(blob => zip.file(link.name, blob))
+              .then(zipData => resolve(zipData));
+          }
+          else {
+            reject(Error(`Fail fetch base64 ${link.url}`));
+            return null;
+          }
+        });
     });
+  };
+
+  const zipAll = fetchedData => {
+    const zip = JSZip();
+    const promises = fetchedData.map(link => zipFetched(zip, link));
+    Promise.all(promises).then(() => {
+      zip.generateAsync({ type: "blob" })
+        .then(content => {
+          const url = URL.createObjectURL(content);
+          browser.runtime.sendMessage({
+            cmd: 'download',
+            url
+          });
+        });
+    });
+    // const blob = new Blob([JSON.stringify(fetchedData)]);
+    // const url = URL.createObjectURL(blob);
+    // browser.runtime.sendMessage({
+    //   cmd: 'zip-all',
+    //   blobUrl: url
+    // });
   };
 
   const recursiveFetch = (fetchedData = [], links, count) => {

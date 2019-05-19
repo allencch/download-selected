@@ -24,28 +24,12 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 * Zip once
 *******************/
 
-const zipFetched = (zip, link) => {
-  return new Promise((resolve, reject) => {
-    return fetch(link.base64data)
-      .then(response => {
-        if (response.ok) {
-          return response
-            .blob()
-            .then(blob => zip.file(link.name, blob))
-            .then(zipData => resolve(zipData));
-        }
-        else {
-          reject(Error(`Fail fetch base64 ${link.url}`));
-          return null;
-        }
-      });
-  });
-};
 
 
 const zipAll = request => {
   const zip = JSZip();
   const { blobUrl } = request;
+  console.log(blobUrl);
 
   // Cannot use fetch, because it only allows http or https
   const xhr = new XMLHttpRequest();
@@ -60,6 +44,7 @@ const zipAll = request => {
         zip.generateAsync({ type: "blob" })
           .then(content => {
             const url = URL.createObjectURL(content);
+            console.log(url);
             const downloadPromise = browser.downloads.download({
               url,
               filename: 'download.zip',
@@ -106,10 +91,32 @@ const zipAll = request => {
   //   });
 };
 
+const downloadZip = request => {
+  const { url } = request;
+  console.log(url);
+  const downloadPromise = browser.downloads.download({
+    url,
+    filename: 'download.zip',
+    conflictAction: 'uniquify',
+    saveAs: true
+  });
+
+  // Firefox
+  if (downloadPromise) {
+    downloadPromise.then(() => {
+      console.log('there');
+      URL.revokeObjectURL(url);
+    });
+  }
+};
+
 browser.runtime.onMessage.addListener((request) => {
   switch (request.cmd) {
     case 'zip-all':
       zipAll(request);
+      break;
+    case 'download':
+      downloadZip(request);
       break;
   }
 });
