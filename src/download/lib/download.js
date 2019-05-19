@@ -67,55 +67,31 @@
     });
   };
 
-  const zipFile = (zip, link) => {
-    return new Promise(resolve => {
-      zip.file(link.name, link.data);
-      resolve(zip);
-    });
-  };
-
   const createZip = (fetchedData) => {
     const zip = JSZip();
 
     for (let i = 0; i < fetchedData.length; i++) {
       const link = fetchedData[i];
-      console.log(link);
       zip.file(link.name, link.data);
     }
 
-
     const result = zip.generateAsync({ type: 'blob' });
-    console.log(zip, result);
+    writeToDiv('Zipping...');
     result.then(content => {
-      console.log(content);
-      window.saveAs(content, 'download.zip'); // From FileSaver
-    }).catch(err => {
-      console.log(err);
-    }).finally(result => {
-      console.log(result);
-    });
-    
-    // const promises = fetchedData.map(link => zipFile(zip, link));
-    // Promise.all(promises).then(() => {
-    //   writeToDiv('Compressing...');
-    //   const result = zip.generateAsync({ type: "blob" });
-    //   console.log(result);
-    //   result.then(content => {
-    //     // const url = URL.createObjectURL(content);
+      writeToDiv('Done');
 
-    //     writeToDiv('Done');
-    //     // browser.runtime.sendMessage({
-    //     //   cmd: 'download',
-    //     //   url
-    //     // });
-    //     window.saveAs(content, 'download.zip'); // From FileSaver
-    //   });
-    // });
+      // Use FileSaver.saveAs. Firefox is not able to
+      // download from blob: protocol
+      window.saveAs(content, 'download.zip');
+    }).catch(err => {
+      writeToDiv(`Error: ${err}`);
+      console.log(err);
+    });
   };
 
   const recursiveFetch = (fetchedData = [], links, count) => {
     if (count >= links.length) {
-      writeToDiv('finish');
+      writeToDiv('Finish');
       createZip(fetchedData);
       return;
     }
