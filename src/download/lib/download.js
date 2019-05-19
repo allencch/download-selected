@@ -59,12 +59,19 @@
           const name = `${link.text}.${getFileExtension(link.url)}`;
           return response
             .blob()
-            .then(blob => blobToBase64(blob))
-            .then(base64data => {
+            // .then(blob => blobToBase64(blob))
+            // .then(base64data => {
+            //   resolve({
+            //     ...link,
+            //     name,
+            //     base64data
+            //   });
+            // });
+            .then(blob => {
               resolve({
                 ...link,
                 name,
-                base64data
+                data: blob
               });
             });
         }
@@ -85,7 +92,10 @@
             return response
               .blob()
               .then(blob => zip.file(link.name, blob))
-              .then(zipData => resolve(zipData));
+              .then(zipData => {
+                console.log(zipData);
+                resolve(zipData);
+              });
           }
           else {
             reject(Error(`Fail fetch base64 ${link.url}`));
@@ -95,13 +105,25 @@
     });
   };
 
+  const zipFile = (zip, link) => {
+    return new Promise(resolve => {
+      zip.file(link.name, link.data);
+      resolve(zip);
+    });
+  };
+
   const zipAll = fetchedData => {
+    console.log(fetchedData);
     const zip = JSZip();
     const promises = fetchedData.map(link => zipFetched(zip, link));
     Promise.all(promises).then(() => {
-      zip.generateAsync({ type: "blob" })
-        .then(content => {
+      console.log('promises', promises, zip);
+      const result = zip.generateAsync({ type: "blob" });
+      console.log(result);
+      result.then(content => {
+          console.log(content);
           const url = URL.createObjectURL(content);
+          console.log(url);
           browser.runtime.sendMessage({
             cmd: 'download',
             url
@@ -116,18 +138,53 @@
     // });
   };
 
+  const createZipUrl = zip => {
+    console.log(zip);
+    const result = zip.generateAync({ type: 'blob' });
+    console.log(result);
+    result.then(content => {
+      const url = URL.createObjectURL(content);
+      browser.runtime.sendMessage({
+        cmd: 'download',
+        url
+      });
+    });
+  };
+
+  const createZip = (fetchedData) => {
+    const zip = JSZip();
+    const promises = fetchedData.map(link => zipFile(zip, link));
+    Promise.all(promises).then(() => {
+      writeToDiv('Compressing...');
+      const result = zip.generateAsync({ type: "blob" });
+      result.then(content => {
+        const url = URL.createObjectURL(content);
+
+        writeToDiv('Done');
+        browser.runtime.sendMessage({
+          cmd: 'download',
+          url
+        });
+      });
+    });
+  };
+
   const recursiveFetch = (fetchedData = [], links, count) => {
     if (count >= links.length) {
       writeToDiv('finish');
-      zipAll(fetchedData);
+      // zipAll(fetchedData);
+      // createZipUrl(zip);
+      createZip(fetchedData);
       return;
     }
+
     const two = links.slice(count, count + NUM_JOB);
     const promises = two.map(link => downloadFile(link));
     Promise.all(promises).then(list => {
       list.forEach(link => {
         writeToDiv(`${link.text} downloaded`);
         fetchedData.push(link);
+        // zip.file(link.name, link.data);
       });
       recursiveFetch(fetchedData, links, count + NUM_JOB);
     });
