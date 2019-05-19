@@ -92,10 +92,12 @@ const zipAll = request => {
 };
 
 const downloadZip = request => {
-  const { url } = request;
-  console.log(url);
+  const { url, blob } = request;
+  console.log(url, blob);
+  const blobUrl = URL.createObjectURL(blob);
+  console.log(blobUrl);
   const downloadPromise = browser.downloads.download({
-    url,
+    blobUrl,
     filename: 'download.zip',
     conflictAction: 'uniquify',
     saveAs: true
@@ -105,7 +107,7 @@ const downloadZip = request => {
   if (downloadPromise) {
     downloadPromise.then(() => {
       console.log('there');
-      URL.revokeObjectURL(url);
+      // URL.revokeObjectURL(url);
     });
   }
 };
@@ -116,6 +118,7 @@ browser.runtime.onMessage.addListener((request) => {
       zipAll(request);
       break;
     case 'download':
+      console.log(request);
       downloadZip(request);
       break;
   }
