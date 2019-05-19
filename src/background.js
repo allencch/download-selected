@@ -60,14 +60,23 @@ const zipAll = request => {
         zip.generateAsync({ type: "blob" })
           .then(content => {
             const url = URL.createObjectURL(content);
-            browser.downloads.download({
+            const downloadPromise = browser.downloads.download({
               url,
               filename: 'download.zip',
               conflictAction: 'uniquify',
               saveAs: true
-            }).then(() => {
+            }, () => {
+              // Chrome
               URL.revokeObjectURL(url);
             });
+
+            // Firefox
+            if (downloadPromise) {
+              downloadPromise.then(() => {
+                console.log('there');
+                URL.revokeObjectURL(url);
+              });
+            }
           });
         URL.revokeObjectURL(blobUrl);
       });
