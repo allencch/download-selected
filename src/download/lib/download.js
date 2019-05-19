@@ -78,9 +78,11 @@
   };
 
   const zipAll = fetchedData => {
+    const blob = new Blob([JSON.stringify(fetchedData)]);
+    const url = URL.createObjectURL(blob);
     browser.runtime.sendMessage({
       cmd: 'zip-all',
-      fetchedData
+      blobUrl: url
     });
   };
 
