@@ -1,15 +1,23 @@
 module.exports = grunt => {
   grunt.initConfig({
     watch: {
-      download: {
-        files: ['src/download/**/*.js'],
+      ui: {
+        files: ['src/ui/**/*.js'],
+        tasks: ['concat']
+      },
+      background: {
+        files: ['src/background/**/*.js'],
         tasks: ['concat']
       }
     },
     concat: {
-      download: {
-        src: ['src/download/lib/**/*.js', 'src/download/index.js'],
-        dest: 'src/download.js'
+      ui: {
+        src: ['src/ui/lib/**/*.js', 'src/ui/index.js'],
+        dest: 'src/ui.js'
+      },
+      background: {
+        src: ['src/background/lib/**/*.js', 'src/background/index.js'],
+        dest: 'src/background.js'
       }
     }
   });

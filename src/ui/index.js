@@ -1,3 +1,6 @@
+/* global chrome */
+var browser = browser || chrome;
+
 // Main
 (() => {
   const { DS } = window;
@@ -7,5 +10,10 @@
 
   if (links.length === 0) return;
 
-  DS.recursiveFetch([], links, 0);
+  browser.runtime.sendMessage({
+    cmd: 'DOWNLOAD',
+    data: {
+      links
+    }
+  });
 })();
