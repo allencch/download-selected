@@ -7,9 +7,9 @@ const getSelection = (tab) => {
   });
 };
 
-const download = (links) => {
+const download = (links, tabId) => {
   const { DSB } = window;
-  DSB.recursiveFetch([], links, 0);
+  DSB.recursiveFetch([], links, 0, { tabId });
 };
 
 browser.contextMenus.create({
@@ -26,11 +26,11 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-browser.runtime.onMessage.addListener((request) => {
-  switch (request.cmd) {
+browser.runtime.onMessage.addListener((message, sender) => {
+  switch (message.type) {
     case 'DOWNLOAD': {
-      const { links } = request.data;
-      download(links);
+      const { links } = message.data;
+      download(links, sender.tab.id);
     }
   }
 });

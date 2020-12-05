@@ -51,5 +51,18 @@
     createMain();
   };
 
+
+  const writeToDiv = message => {
+    const div = document.querySelector('.download-selected--content');
+    if (!div) {
+      return;
+    }
+    const child = document.createElement('div');
+    const text = document.createTextNode(message);
+    child.appendChild(text);
+    div.appendChild(child);
+  };
+
   DS.createUI = createUI;
+  DS.writeToDiv = writeToDiv;
 })();

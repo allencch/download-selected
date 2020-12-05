@@ -11,15 +11,11 @@
    * Downloads
    **************/
 
-  const writeToDiv = message => {
-    const div = document.querySelector('.download-selected--content');
-    if (!div) {
-      return;
-    }
-    const child = document.createElement('div');
-    const text = document.createTextNode(message);
-    child.appendChild(text);
-    div.appendChild(child);
+  const notifyTab = (tabId, message) => {
+    browser.tabs.sendMessage(tabId, {
+      type: 'WRITE_MESSAGE',
+      message
+    });
   };
 
   const getFileExtension = (url) => {
@@ -31,7 +27,7 @@
     return lastMatch.substring(1);
   };
 
-  const downloadFile = (link) => {
+  const downloadFile = (link, onError) => {
     return new Promise((resolve, reject) => {
       return fetch(link.url, {
         referrer: link.referrer
@@ -47,17 +43,14 @@
                 data
               });
             });
-        }
-        else {
-          const message = `Fail download ${link.url}`;
-          writeToDiv(message);
-          return reject(Error(message));
+        } else {
+          return onError(reject);
         }
       });
     });
   };
 
-  const createZip = (fetchedData) => {
+  const createZip = (fetchedData, tabId) => {
     const zip = JSZip();
 
     for (let i = 0; i < fetchedData.length; i++) {
@@ -66,34 +59,40 @@
     }
 
     const result = zip.generateAsync({ type: 'blob' });
-    writeToDiv('Zipping...');
+    notifyTab(tabId, 'Zipping...');
     result.then(content => {
-      writeToDiv('Done');
+      notifyTab(tabId, 'Done');
 
       // Use FileSaver.saveAs. Firefox is not able to
       // download from blob: protocol
       window.saveAs(content, 'download.zip');
     }).catch(err => {
-      writeToDiv(`Error: ${err}`);
+      notifyTab(tabId, `Error: ${err}`);
       console.log(err);
     });
   };
 
-  const recursiveFetch = (fetchedData = [], links, count) => {
+
+  const recursiveFetch = (fetchedData = [], links, count, { tabId }) => {
     if (count >= links.length) {
-      writeToDiv('Finish');
-      createZip(fetchedData);
+      notifyTab(tabId, 'Finish');
+      createZip(fetchedData, tabId);
       return;
     }
 
     const two = links.slice(count, count + NUM_JOB);
-    const promises = two.map(link => downloadFile(link));
+    const promises = two.map(link => downloadFile(link, (reject) => {
+      const message = `Fail download ${link.url}`;
+      notifyTab(tabId, message);
+      return reject(new Error(message));
+    }));
+
     Promise.all(promises).then(list => {
       list.forEach(link => {
-        writeToDiv(`${link.text} downloaded`);
+        notifyTab(tabId, `${link.text} downloaded`);
         fetchedData.push(link);
       });
-      recursiveFetch(fetchedData, links, count + NUM_JOB);
+      recursiveFetch(fetchedData, links, count + NUM_JOB, { tabId });
     });
   };
 
