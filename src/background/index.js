@@ -34,3 +34,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
     }
   }
 });
+
+browser.browserAction.onClicked.addListener((tab) => {
+  getSelection(tab);
+});
