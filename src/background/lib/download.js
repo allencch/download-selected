@@ -27,7 +27,8 @@
     return lastMatch.substring(1);
   };
 
-  const downloadFile = (link, onError) => {
+  // @deprecated
+  const _downloadFile = (link, onError) => {
     return new Promise((resolve, reject) => {
       return fetch(link.url, {
         referrer: link.referrer
@@ -46,6 +47,24 @@
         } else {
           return onError(reject);
         }
+      });
+    });
+  };
+
+  const downloadFile = (link, onError) => {
+    const { fetchByXhr } = DSB;
+    return new Promise((resolve, reject) => {
+      return fetchByXhr(link.url, {
+        referrer: link.referrer
+      }).then(arrayBuffer => {
+        const name = `${link.text}.${getFileExtension(link.url)}`;
+        return resolve({
+          ...link,
+          name,
+          data: arrayBuffer
+        });
+      }).catch(() => {
+        return onError(reject);
       });
     });
   };
