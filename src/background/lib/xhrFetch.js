@@ -8,8 +8,8 @@
       xhr.open("GET", url);
       xhr.responseType = 'arraybuffer';
 
-      if (options.referrer) {
-        xhr.setRequestHeader('Referrer', options.referrer);
+      for (let key in options) {
+        xhr.setRequestHeader(key, options[key]);
       }
 
       xhr.onload = () => {
