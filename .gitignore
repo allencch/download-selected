@@ -3,4 +3,3 @@
 node_modules
 /src/download.js
 /src/ui.js
-/src/background.js
