@@ -1,6 +1,6 @@
 /* global chrome */
 var browser = browser || chrome;
-// import { recursiveFetch } from './background/lib/download';
+import { recursiveFetch } from './background/lib/download.js';
 
 const getSelection = (tab) => {
   browser.scripting.executeScript({
@@ -10,7 +10,7 @@ const getSelection = (tab) => {
 };
 
 const download = (links, tabId) => {
-  // recursiveFetch([], links, 0, { tabId });
+  recursiveFetch([], links, 0, { tabId });
 };
 
 browser.contextMenus.create({

@@ -11365,3 +11365,4 @@ module.exports = typeof setImmediate === 'function' ? setImmediate :
 
 },{}]},{},[10])(10)
 });
+export default JSZip;
