@@ -1,5 +1,5 @@
-import { fetchByXhr } from './fetchByXhr';
-import JSZip from './jszip';
+import { fetchByXhr } from './xhrFetch.js';
+import JSZip from './jszip.js';
 
 const NUM_JOB = 2;
 var browser = browser || chrome;
@@ -21,7 +21,7 @@ const getFileExtension = (url) => {
 };
 
 // @deprecated
-const _downloadFile = (link, onError) => {
+const downloadFile = (link, onError) => {
   return new Promise((resolve, reject) => {
     return fetch(link.url, {
       referrer: link.referrer
@@ -44,7 +44,7 @@ const _downloadFile = (link, onError) => {
   });
 };
 
-const downloadFile = (link, onError) => {
+const _downloadFile = (link, onError) => {
   return new Promise((resolve, reject) => {
     return fetchByXhr(link.url, {
       referrer: link.referrer
@@ -55,7 +55,8 @@ const downloadFile = (link, onError) => {
         name,
         data: arrayBuffer
       });
-    }).catch(() => {
+    }).catch((err) => {
+      console.log(err);
       return onError(reject);
     });
   });
