@@ -5,10 +5,16 @@ var browser = browser || chrome;
 (() => {
   const { DS } = window;
 
-  browser.runtime.onMessage.addListener((message, sender, reply) => {
+  const base64ToBlob = (base64, type = 'application/octet-stream') => fetch(`data:${type};base64,${base64}`).then(res => res.blob());
+
+  browser.runtime.onMessage.addListener(async (message, sender, reply) => {
     switch (message.type) {
       case 'WRITE_MESSAGE':
         DS.writeToDiv(message.message);
+        break;
+      case 'SAVE_ZIP':
+        window.saveAs(await base64ToBlob(message.data), 'download.zip');
+        break;
     }
   });
 

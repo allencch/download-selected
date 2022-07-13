@@ -70,14 +70,15 @@ const createZip = (fetchedData, tabId) => {
     zip.file(link.name, link.data);
   }
 
-  const result = zip.generateAsync({ type: 'blob' });
+  const result = zip.generateAsync({ type: 'base64' });
   notifyTab(tabId, 'Zipping...');
   result.then(content => {
     notifyTab(tabId, 'Done');
 
-    // Use FileSaver.saveAs. Firefox is not able to
-    // download from blob: protocol
-    window.saveAs(content, 'download.zip');
+    browser.tabs.sendMessage(tabId, {
+      type: 'SAVE_ZIP',
+      data: content
+    });
   }).catch(err => {
     notifyTab(tabId, `Error: ${err}`);
     console.log(err);
