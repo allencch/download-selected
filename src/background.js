@@ -1,15 +1,16 @@
 /* global chrome */
 var browser = browser || chrome;
+// import { recursiveFetch } from './background/lib/download';
 
 const getSelection = (tab) => {
-  browser.tabs.executeScript(tab.id, {
-    file: 'ui.js'
+  browser.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ['ui.js']
   });
 };
 
 const download = (links, tabId) => {
-  const { DSB } = window;
-  DSB.recursiveFetch([], links, 0, { tabId });
+  // recursiveFetch([], links, 0, { tabId });
 };
 
 browser.contextMenus.create({
@@ -35,6 +36,6 @@ browser.runtime.onMessage.addListener((message, sender) => {
   }
 });
 
-browser.browserAction.onClicked.addListener((tab) => {
+browser.action.onClicked.addListener((tab) => {
   getSelection(tab);
 });
