@@ -13,12 +13,6 @@ const download = (links, tabId) => {
   recursiveFetch([], links, 0, { tabId });
 };
 
-browser.contextMenus.create({
-  id: "download-selected",
-  title: "Download Selected",
-  contexts: ["all"]
-});
-
 browser.contextMenus.onClicked.addListener((info, tab) => {
   switch (info.menuItemId) {
     case 'download-selected':
@@ -38,4 +32,12 @@ browser.runtime.onMessage.addListener((message, sender) => {
 
 browser.action.onClicked.addListener((tab) => {
   getSelection(tab);
+});
+
+browser.runtime.onInstalled.addListener(() => {
+  browser.contextMenus.create({
+    id: "download-selected",
+    title: "Download Selected",
+    contexts: ["all"]
+  });
 });
